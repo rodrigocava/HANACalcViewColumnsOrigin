@@ -19,11 +19,13 @@ This simple development generates a JSON with the origin of all the columns of a
 
 The structure that it generates is the follow:
 
-    { <COLUMN NAME>: 
+    { 
+      <COLUMN NAME>: {
         "sourceType": <Shows "DATA_BASE_TABLE" for table columns and "formula" for Formulas>,
         "source": <Shows table name for table columns and the Calculation View Node for Formulas>,
         "column": <Shows column name for table columns and the formula for Formulas>,
         "source": <Shows schema name for table columns and the Calculation View Name for Formulas>
+      }
     } 
 
 
