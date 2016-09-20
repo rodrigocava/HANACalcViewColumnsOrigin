@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!-- // Software licensed by the MIT License of Open Source (https://opensource.org/licenses/MIT) -->
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
+
+/* Start by setting display:none to make this hidden.
+   Then we position it in relation to the viewport window
+   with position:fixed. Width, height, top and left speak
+   for themselves. Background we set to 80% white with
+   our animation centered, and no-repeating */
+.modal {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 255, 255, 255, .8 ) 
+                url('http://i.stack.imgur.com/FhHRx.gif') 
+                50% 50% 
+                no-repeat;
+}
+
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading { overflow: hidden; }
+
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .modal { display: block }
+
+.obscure { 
+    position: absolute !important; 
+    clip: rect(1px 1px 1px 1px); /* IE6, IE7 */ 
+    clip: rect(1px, 1px, 1px, 1px); 
+} 
+
+</style>
+<head><title> CalcView Columns Origin </title></head>
+<body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<form onsubmit="return loadJSON()">
+  <br>
+  <font face="verdana"> CalcView Name: </font>
+  <input type="text" id="viewName" size="30">
+  <br>
+  <br>
+  <input type="button" id="btnUpdate" value="Find Origin!" onclick="return loadJSON()">
+  <br>
+  <br>
+  <label class="obscure" id="errorMsg" > <font face="verdana" color="red"> Error! Check the name of the view, please. </font> </label>
+
+</form>
+<div class="modal"><!-- Place at bottom of page --></div>
+<script>
+$body = $("body");
+
+$(document).on({
+    ajaxStart: function() { $body.addClass("loading");    },
+     ajaxStop: function() { $body.removeClass("loading"); }    
+});
+
+function loadJSON(){
+  var req = {}
+  req.object = document.getElementById('viewName').value
+  $.ajax({
+    type: 'GET',
+    url: '/calcViewColumnsOrigin',
+    cache: true,
+    data: req,
+    complete: function (data){
+      $.getJSON("/resultCalcViewColumnsOrigin",function(columnsOrigin){
+      
+        // Remove the columns if it exists already
+        if (document.getElementById('columns'))
+          document.getElementById('columns').remove();
+
+        if(columnsOrigin.error){
+          document.getElementById('errorMsg').classList.remove('obscure');
+        } else {
+          if (!document.getElementById('errorMsg').classList.contains('obscure'))
+            document.getElementById('errorMsg').classList.add('obscure');
+
+          var obj = columnsOrigin;
+          var str = JSON.stringify(obj, undefined, 4);
+          output(syntaxHighlight(str));
+
+        }
+      })
+    }
+  });
+
+  return false;
+}
+
+function output(inp) {
+    a = document.createElement('pre');
+    a.setAttribute("id","columns");
+    document.body.appendChild(a).innerHTML = inp;
+};
+
+function syntaxHighlight(json) {
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+            } else {
+                cls = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
+};
+
+</script>
+</body>
